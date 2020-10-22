@@ -2,11 +2,29 @@
 // http://localhost:3000/isolated/exercise/04.js
 
 import React from 'react'
-
+import { useLocalStorageState } from '../utils.js'
 function Board() {
   // 🐨 squares is the state for this component. Add useState for squares
-  const squares = Array(9).fill(null)
+  // const squares = Array(9).fill(null)
 
+  // const [squares, setSquares] = React.useState(() => JSON.parse(window.localStorage.getItem('squares')) || Array(9).fill(null))
+  const [squares, setSquares] = useLocalStorageState('squares', Array(9).fill(null))
+  const [history, setHistory] = React.useState([squares])
+  const [winner, setWinner] = React.useState(null)
+  const nextValue = calculateNextValue(squares)
+  const status = calculateStatus(winner, squares, nextValue)
+  React.useEffect(() => { 
+    // window.localStorage.setItem('squares', JSON.stringify(squares))
+    setSquares(squares)
+    setWinner(calculateWinner(squares))
+    setHistory(() => {
+      const newHistory = [...history]
+        newHistory.push(squares)
+      return newHistory;
+    })
+    // console.dir(history, squares)
+  },[squares])
+  
   // 🐨 We'll need the following bits of derived state:
   // - nextValue ('X' or 'O')
   // - winner ('X', 'O', or null)
@@ -28,24 +46,39 @@ function Board() {
     // 💰 `squaresCopy[square] = nextValue`
     //
     // 🐨 set the squares to your copy
+    if (squares[square] === null || winner === null){
+      const nextSquares = [...squares];
+      nextSquares[square] = nextValue;
+      setSquares(nextSquares)
+    }
+
+
   }
 
   function restart() {
     // 🐨 set the squares to `Array(9).fill(null)`
+    const resetValue = Array(9).fill(null)
+    setSquares(resetValue)
+    setHistory([resetValue])
+
   }
 
   function renderSquare(i) {
+    
     return (
       <button className="square" onClick={() => selectSquare(i)}>
         {squares[i]}
       </button>
     )
   }
-
+  // React.useEffect(()=> {
+  //   setWinner(calculateStatus(squares, winner, nextValue))
+  // }, [squares, winner, nextValue])
   return (
     <div>
       {/* 🐨 put the status here */}
-      <div className="status">STATUS</div>
+      <div className="status">{status}</div>
+      {/* {calculateStatus(squares, winner, nextValue)} */}
       <div className="board-row">
         {renderSquare(0)}
         {renderSquare(1)}
